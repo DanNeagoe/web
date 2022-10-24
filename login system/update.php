@@ -19,75 +19,86 @@
 	}
 
 	</style>
+	
+
+     
 </head>
 
 <body>
 <div class="form-container">
 <?php
-session_start();
 include('db.php');
-include('config.php');
+session_start();
 if(isset($_POST['sub']))
 {
-$username=$_SESSION['user_name'];
+$username=$_POST['username'];
 $roomtype=$_POST['field_1'];
 $startdate=$_POST['startdate'];
 $enddate=$_POST['enddate'];
 $room_nos=$_POST['room_nos'];
 $amount=$_POST['roomprice'];
-$_SESSION['user_name']=$row['name'];
+$id = $_POST['id'];
 
 $checkroom= "select count(*) from roomdetail where room_type='".$roomtype."' ";
 $check=mysqli_query($con1,$checkroom);
-$roomcount=mysqli_fetch_array($check,MYSQLI_NUM);
+$roomcount=mysqli_fetch_array($check,MYSQLI_ASSOC);
  $checkcount=$roomcount[0];
 if($checkcount>=10)
 {
 ?> <script>alert("Sorry Rooms Are not Available :( please try another Option !!");</script>
 <?php }
 else{
-$s1="INSERT INTO roomdetail (username,checkin_date,checkout_date,room_type,no_of_room,amount)VALUES('".$username."','".$startdate."','".$enddate."','".$roomtype."','".$room_nos."','".$amount."')";
-mysqli_query($con1,$s1);
-header("location:reservation.php?success=true");
+$sql1="UPDATE roomdetail set username='".$username."',checkin_date='".$startdate."',checkout_date='".$enddate."',room_type='".$roomtype."',no_of_room='".$room_nos."',amount='".$amount."' where id='".$id."'";
+mysqli_query($con1,$sql1);
+header("location:adminpanal.php");
 }
 }
 ?>
 
 <div id="contenar">
-
+<?php
+if(isset($_GET['id']))
+{
+$id=$_GET['id'];
+$getdata= "select * from roomdetail where id='".$id."' ";
+$check1=mysqli_query($con1,$getdata);
+$room=mysqli_fetch_array($check1,MYSQLI_ASSOC);
+}
+?>
 	<div id="r">
-	<form action="reservation.php" method="POST">
-	<h3> please select your preference, mister/miss <?php session_start(); if(isset($_SESSION['user_name'])){ echo $_SESSION['user_name']; } ?>!!!</h3>
-  <?php if(isset($_GET['success'])){
-		echo '<h4> Your room Booked successfully,You will be contacted soon. !!!</h4>';
-	}?>
+	<form action="update.php" method="POST">
+	<h2 align="center" id="h"><u><i>Book Room</i></u></h2>
+	<h3> Welcome <?php session_start(); if(isset($_SESSION['username'])){ echo $_SESSION['username']; } if(isset($_GET['id'])){ echo $room['username']; }  ?> !!!</h3>
         <table >
 		
           <tr>
             <td width="113">Check in Date</td>
             <td width="215">
-              <input name="startdate1" type="date"  value="<?php if(isset($_POST['startdate1'])){ echo $_POST['startdate1']; }?>" /></td>
+			<?php if(isset($_GET['id'])){ ?>
+			 <input name="roomid" type="hidden"  value="<?php if(isset($_GET['id'])){ echo $_GET['id']; }  ?>" /> <?php } ?>
+              <input name="startdate1" type="date"  value="<?php if(isset($_POST['startdate1'])){ echo $_POST['startdate1']; } if(isset($_GET['id'])){ echo $room['checkin_date']; }  ?>" /></td>
           </tr>
           <tr>
             <td>Check out Date</td>
             <td>
-              <input name="enddate1" type="date" value="<?php if(isset($_POST['enddate1'])){ echo $_POST['enddate1']; }?>" onchange='this.form.submit()' /></td>
+              <input name="enddate1" type="date" value="<?php if(isset($_POST['enddate1'])){ echo $_POST['enddate1']; }if(isset($_GET['id'])){ echo $room['checkout_date']; }  ?>" onchange='this.form.submit()' /></td>
           </tr>
 			
        </table>
 		</form>
-		<form action="reservation.php" method="POST">
+		<form action="update.php" method="POST">
         <table >
-		
+		<?php if(isset($_POST['roomid'])){ ?>
+			 <input name="id" type="hidden"  value="<?php if(isset($_POST['roomid'])){ echo $_POST['roomid']; }  ?>" /> <?php } ?>
           <tr>
             <td width="113"></td>
             <td width="215">
-              <input name="startdate" type="hidden" value=" <?php if(isset($_POST['startdate1'])){ echo $_POST['startdate1']; }?> " /></td>
+              <input name="startdate" type="hidden" value="<?php if(isset($_POST['startdate1'])){ echo $_POST['startdate1'];  } if(isset($_GET['id'])){ echo $room['checkin_date']; }?>" /></td>
           </tr>
           <tr>
             <td></td>
-            <td><input name="username" type="hidden" value="<?php session_start(); if(isset($_SESSION['user_name'])){ echo $_SESSION['user_name']; } ?>"  />
-              <input name="enddate" type="hidden" value=" <?php if(isset($_POST['enddate1'])){ echo $_POST['enddate1']; }?> "  /></td>
+            <td><input name="username" type="hidden" value="<?php session_start(); if(isset($_SESSION['username'])){ echo $_SESSION['username']; } if(isset($_GET['id'])){ echo $room['username']; }  ?>"  />
+              <input name="enddate" type="hidden" value="<?php if(isset($_POST['enddate1'])){ echo $_POST['enddate1']; } if(isset($_GET['id'])){ echo $room['checkout_date']; }?>"  /></td>
           </tr>
 		  <tr>
             <td>Room Type </td>
@@ -120,23 +131,23 @@ $s3=mysqli_query($con1,$s2);
 		  <tr>
             <td>Price per Room</td>
             <td>
-             <span id="a1"  ></span>$
+             <span id="a1"><?php if(isset($_GET['id'])){ echo $room['room_type']; }?></span>$
            </td>
           </tr>
 		   <tr>
             <td>No. of Guest per Room</td>
             <td>
-              <input name="guest" type="text " size="10"/></td>
+              <input name="guest" type="text " value="<?php if(isset($_GET['id'])){ echo $room['no_of_room']; }?>" size="10"/></td>
           </tr>
 		  <tr>
             <td>No. of Rooms </td>
             <td>
-              <input name="room_nos" id="room_nos" type="text " size="10" onChange="gettotal1()" /></td>
+              <input name="room_nos" id="room_nos" type="text " value="<?php if(isset($_GET['id'])){ echo $room['no_of_room']; }?>" size="10" onChange="gettotal1()" /></td>
           </tr>
 		  <tr>
             <td>Total Amount To Pay</td>
             <td>
-             <input type="text" name="roomprice" id="total1"  size="10px" readonly="" />
+             <input type="text" name="roomprice" id="total1" value="<?php if(isset($_GET['id'])){ echo $room['amount']; }?>"  size="10px" readonly="" />
            </td>
           </tr>
 		  
@@ -165,11 +176,11 @@ notEmpty()
 
 
    function gettotal1(){
-      var gender1=document.getElementById('a1').innerHTML;
-      var gender2=document.getElementById('room_nos').value;
-      var gender3=parseFloat(gender1)* parseFloat(gender2);
+      var priceperroom=document.getElementById('a1').innerHTML;
+      var roomnos=document.getElementById('room_nos').value;
+      var totalamount=parseFloat(priceperroom)* parseFloat(roomnos);
 			
-      document.getElementById('total1').value=gender3;
+      document.getElementById('total1').value=totalamount;
 	
    }
 			</script>
@@ -177,7 +188,6 @@ notEmpty()
 		
 	</div>
 </div>
-
 </div>
 </body>
 </html>

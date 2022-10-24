@@ -6,8 +6,7 @@
 <link rel="stylesheet" href="css/style.css">
 <style type="text/css">
 table, th, td {
-  border: 1px solid white;
-  border-collapse: collapse;
+  border: 1px solid;
 }
 th, td {
 	background-color: crimson;
@@ -16,7 +15,7 @@ th, td {
 <body>
 	  <h1>welcome admin</h1>
 	  Choose option from Below to take action!!!!
-	  Create new Booking click <a href="../registration.php"> Here</a>
+	  Create new Booking click <a href="reservation.php"> Here</a>
 	  <?php
 	  include('db.php');
 	  $sql="select * from roomdetail ";
