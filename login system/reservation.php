@@ -1,84 +1,183 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<link rel="stylesheet" href="css/style.css">
+<style type="text/css">
+	#contenar{
+		height: 100%;
+		width: 100%;
+		
+	}
+	#r{
+		margin-top: 5%;
+		margin-bottom: 5%;
+		margin-right: 5%;
+		margin-left: 5%;
+		float: center;
+		background-color: crimson;
+		
+	}
+
+	</style>
+</head>
+
+<body>
+<div class="form-container">
 <?php
-
-@include 'config.php';
+include('db.php');
+include('config.php');
 session_start();
+if(isset($_POST['sub']))
+{
+$username=$_SESSION["email"];
+$roomtype=$_POST['field_1'];
+$startdate=$_POST['startdate'];
+$enddate=$_POST['enddate'];
+$room_nos=$_POST['room_nos'];
+$amount=$_POST['roomprice'];
+$_SESSION['user_name']=$row['name'];
 
-if(!isset($_SESSION['name1'])){
-    header('registration.php');
- }
+$checkroom= "select count(*) from roomdetail where room_type='".$roomtype."' ";
+$check=mysqli_query($con1,$checkroom);
+$roomcount=mysqli_fetch_array($check,MYSQLI_NUM);
+ $checkcount=$roomcount[0];
+if($checkcount>=10)
+{
+?> <script>alert("Sorry Rooms Are not Available :( please try another Option !!");</script>
+<?php }
+else{
+$s1="INSERT INTO roomdetail (username,checkin_date,checkout_date,room_type,no_of_room,amount)VALUES('".$username."','".$startdate."','".$enddate."','".$roomtype."','".$room_nos."','".$amount."')";
+mysqli_query($con1,$s1);
+header("location:reservation.php?success=true");
+}
+}
+?>
 
+<div id="contenar">
 
-if(isset($_POST['submit'])){
+	<div id="r">
+	<form action="reservation.php" method="POST">
+	<h3> please select your preference, mister/miss <?php session_start(); if(isset($_SESSION['user_name'])){ echo $_SESSION['user_name']; } ?>!!!</h3>
+  <?php if(isset($_GET['success'])){
+		echo '<h4> Your room Booked successfully,You will be contacted soon. !!!</h4>';
+	}?>
+        <table >
+		
+          <tr>
+            <td width="113">Check in Date</td>
+            <td width="215">
+              <input name="startdate1" type="date"  value="<?php if(isset($_POST['startdate1'])){ echo $_POST['startdate1']; }?>" /></td>
+          </tr>
+          <tr>
+            <td>Check out Date</td>
+            <td>
+              <input name="enddate1" type="date" value="<?php if(isset($_POST['enddate1'])){ echo $_POST['enddate1']; }?>" onchange='this.form.submit()' /></td>
+          </tr>
+			
+       </table>
+		</form>
+		<form action="reservation.php" method="POST">
+        <table >
+		
+          <tr>
+            <td width="113"></td>
+            <td width="215">
+              <input name="startdate" type="hidden" value=" <?php if(isset($_POST['startdate1'])){ echo $_POST['startdate1']; }?> " /></td>
+          </tr>
+          <tr>
+            <td></td>
+            <td><input name="username" type="hidden" value="<?php session_start(); if(isset($_SESSION['name'])){ echo $_SESSION['name']; } ?>"  />
+              <input name="enddate" type="hidden" value=" <?php if(isset($_POST['enddate1'])){ echo $_POST['enddate1']; }?> "  /></td>
+          </tr>
+		  <tr>
+            <td>Room Type </td>
+            <td>
+              <select class="text_select" id="field_1" name="field_1" >  
+<option value="00">- Select -</option>   
+<?php if(isset($_POST['startdate1'])){
+$paymentDate = $_POST['startdate1'];
+$contractDateBegin = '2013-12-20';
+$contractDateEnd ='2014-03-25';
 
-   $name = mysqli_real_escape_string($conn, $_POST['name']);
-   $email = mysqli_real_escape_string($conn, $_POST['email']);
-   $pass = md5($_POST['password']);
-   $cpass = md5($_POST['cpassword']);
-   $user_type = $_POST['user_type'];
-   $startdate=$_POST['startdate'];
-
-   $select = " SELECT * FROM user_form WHERE email = '$email' && password = '$pass' ";
-
-   $result = mysqli_query($conn, $select);
-
-   if(mysqli_num_rows($result) > 0){
-
-      $error[] = 'user already exist!';
-
-   }else{
-    if(($row['user_type'] == 'admin')||($row['user_type'] == 'user')){
-    $_SESSION['user_name'] = $row['name'];
-    header('location:reservation.php');}
-
-      if($pass != $cpass){
-         $error[] = 'password not matched!';
-      }else{
-         $insert = "INSERT INTO user_form(name, email, password, user_type) VALUES('$name','$email','$pass','$user_type')";
-         mysqli_query($conn, $insert);
-         header('location:login_form.php');
-      }
-   }
-
-};
+if (($paymentDate >= $contractDateBegin) && ($paymentDate <= $contractDateEnd))
+{
+ $s2="select * from roomtype where room_seson ='high season' ";
+$s3=mysqli_query($con1,$s2);
+}
+else
+{
+$s2="select * from roomtype where room_seson='low season' ";
+$s3=mysqli_query($con1,$s2);
+}
 
 
 ?>
+<?php while($catdata=mysqli_fetch_array($s3,MYSQLI_ASSOC)) { ?>  <option value="<?php echo $catdata['room_price']; ?>"><?php echo $catdata['room_type']; ?></option>
+           <?php } ?>
+		   <?php } ?>
+           </select></td>
+          </tr>
+		  <tr>
+            <td>Price per Room</td>
+            <td>
+             <span id="a1"  ></span>$
+           </td>
+          </tr>
+		   <tr>
+            <td>No. of Guest per Room</td>
+            <td>
+              <input name="guest" type="text " size="10"/></td>
+          </tr>
+		  <tr>
+            <td>No. of Rooms </td>
+            <td>
+              <input name="room_nos" id="room_nos" type="text " size="10" onChange="gettotal1()" /></td>
+          </tr>
+		  <tr>
+            <td>Total Amount To Pay</td>
+            <td>
+             <input type="text" name="roomprice" id="total1"  size="10px" readonly="" />
+           </td>
+          </tr>
+		  
+          <tr>
+            <td colspan="2" align="center">
+			<input type="submit" name="sub" value="Pay & Book" /></td>
+            </tr>
+			
+       </table>
+		</form>
+		
+		<script language="javascript" type="text/javascript">
+function notEmpty(){
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-   <meta charset="UTF-8">
-   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <title>reservation</title>
+var e = document.getElementById("field_1");
+var strUser = e.options[e.selectedIndex].value;
+ var strUser=document.getElementById('a1').innerHTML=strUser;
 
-   <!-- custom css file link  -->
-   <link rel="stylesheet" href="css/style.css">
 
-</head>
-<body>
-   
-<div class="form-container">
 
-   <form action="" method="post">
-      <h3>reservation</h3>
-      <?php
-      if(isset($error)){
-         foreach($error as $error){
-            echo '<span class="error-msg">'.$error.'</span>';
-         };
-      };
-      ?>
-      <p>Dear <span><?php echo  $_SESSION['user_name'] ?></span></p>
-      <p>No. of persons</p>      
-      <input name="guest" type="text " size="10"/>
-      <p>enter your date</p>
-      <input name="startdate1" type="date"  value="<?php if(isset($_POST['startdate1'])){ echo $_POST['startdate1']; }?>" /></td>
-      <input type="submit" name="submit" value="register now" class="form-btn">
-      <p>already have an account? <a href="login_form.php">login now</a></p>
-   </form>
 
+}
+notEmpty()
+    
+    document.getElementById("field_1").onchange = notEmpty;
+
+
+   function gettotal1(){
+      var gender1=document.getElementById('a1').innerHTML;
+      var gender2=document.getElementById('room_nos').value;
+      var gender3=parseFloat(gender1)* parseFloat(gender2);
+			
+      document.getElementById('total1').value=gender3;
+	
+   }
+			</script>
+ 
+		
+	</div>
 </div>
 
+</div>
 </body>
 </html>
