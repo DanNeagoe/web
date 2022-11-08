@@ -31,6 +31,7 @@ if(!isset($_SESSION['admin_name'])){
       <h1>welcome <span><?php echo $_SESSION['admin_name'] ?></span></h1>
       <p>this is an admin page</p>
       <a href="adminpanal.php" class="btn">reservations</a>
+      <a href="userPanaladmin.php" class="btn">users</a>
       <a href="logout.php" class="btn">logout</a>
    </div>
 
